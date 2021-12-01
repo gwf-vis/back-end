@@ -19,7 +19,7 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@controller/*": [
-        "src/controllers/*"
+        "src/controller/*"
       ],
       "@repository/*": [
         "src/repository/*"

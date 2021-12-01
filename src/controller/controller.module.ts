@@ -8,4 +8,4 @@ import { ServiceModule } from '@service/service.module';
   imports: [RepositoryModule, ServiceModule],
   controllers: [FileController, AuthController],
 })
-export class ControllersModule {}
+export class ControllerModule {}
