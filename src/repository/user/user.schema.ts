@@ -1,5 +1,5 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema()
 export class User extends Document {
@@ -8,6 +8,9 @@ export class User extends Document {
 
   @Prop({ type: String, required: true })
   password: string; // TODO may use authenticationHash
+
+  @Prop({ type: Types.ObjectId, required: true, ref: 'role' })
+  roleId: Types.ObjectId | string;
 
   @Prop({ type: String })
   token?: string;
