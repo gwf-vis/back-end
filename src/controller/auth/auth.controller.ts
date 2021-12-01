@@ -17,7 +17,7 @@ export class AuthController {
     @Body() info: { username: string; password: string }, // TODO may use authenticationHash
     @Res({ passthrough: true }) response: Response,
   ) {
-    const user = (await this.userService.find(info))?.[0];
+    const user = await this.userService.findOne(info);
     if (!user) {
       throw Error('No such user.');
     } else {
