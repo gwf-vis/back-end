@@ -18,7 +18,7 @@ export class FileController {
     const _id = this.jwtService.decode(token)?.['_id'];
     const user = (await this.userService.find({ _id }))?.[0];
 
-    const fileTree = directoryTree('./data');
+    const fileTree = directoryTree('./files');
     fileTree.children = fileTree.children.filter(
       (child) => child.name === user?.username || child.name === 'public',
     );
@@ -27,6 +27,6 @@ export class FileController {
 
   @Get()
   async getFileContent(@Query('path') path: string) {
-    return await readFile(`./data/${path}`, { encoding: 'utf-8' });
+    return await readFile(`./files/${path}`, { encoding: 'utf-8' });
   }
 }

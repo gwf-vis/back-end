@@ -4,8 +4,8 @@
   "compilerOptions": {    
     "assets": [
       {
-        "include": "../data",
-        "outDir": "dist/data",
+        "include": "../files",
+        "outDir": "dist/files",
         "watchAssets": true
       }
     ],

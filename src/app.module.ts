@@ -16,7 +16,7 @@ const ENV = process.env.NODE_ENV;
       path: path.resolve(process.cwd(), !ENV ? '.env' : `.env.${ENV}`),
     }),
     ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, 'data'),
+      rootPath: path.join(__dirname, 'files'),
       serveRoot: '/files',
     }),
     ControllerModule,
