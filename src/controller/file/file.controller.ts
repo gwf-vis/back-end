@@ -1,15 +1,18 @@
-import { Controller, Get, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 import { Request } from 'express';
 import * as directoryTree from 'directory-tree';
 import { readFile } from 'fs/promises';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@repository/user/user.service';
+import { lastValueFrom, map } from 'rxjs';
 
 @Controller('file')
 export class FileController {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private httpService: HttpService,
   ) {}
 
   @Get('tree')
@@ -30,34 +33,30 @@ export class FileController {
     return await readFile(`./files/${path}`, { encoding: 'utf-8' });
   }
 
-  // TODO remove the temp method
-  @Get('data')
-  async tempVisData() {
-    const geoJSONPath = 'public/data/bow_river_network.json';
-    const geoJSONString = await readFile(`./files/${geoJSONPath}`, {
-      encoding: 'utf-8',
-    });
-    const geoJSONObject = JSON.parse(geoJSONString);
+  // TODO remove the below temp stuffs
+  private readonly userData = {};
+
+  @Post('run')
+  async runCode(@Body('code') code: string) {
+    const pythonRunnerUrl = 'http://localhost:8000/run';
+    const data = await lastValueFrom(
+      this.httpService
+        .post(pythonRunnerUrl, code, {
+          headers: { 'Content-type': 'text/plain' },
+        })
+        .pipe(map((res) => res.data)),
+    );
+    const id = new Date().getTime().toString();
+    this.userData[id] = data.result;
     return {
-      baseLayers: ['Grayscale', 'Streets'],
-      overlayLayers: [
-        {
-          name: 'River Network',
-          geoJSONData: geoJSONObject,
-        },
-      ],
-      plugins: [
-        {
-          name: 'Sidebar',
-          tagName: 'vis-main-sidebar',
-          plugins: [
-            {
-              name: 'BarChart',
-              tagName: 'vis-main-sidebar-bar-chart',
-            },
-          ],
-        },
-      ],
+      id,
+      output: data.output,
+      result: data.result,
     };
+  }
+
+  @Get('vis')
+  async tempVisData(@Query('id') id: string) {
+    return this.userData[id];
   }
 }
