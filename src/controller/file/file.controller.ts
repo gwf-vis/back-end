@@ -29,4 +29,35 @@ export class FileController {
   async getFileContent(@Query('path') path: string) {
     return await readFile(`./files/${path}`, { encoding: 'utf-8' });
   }
+
+  // TODO remove the temp method
+  @Get('data')
+  async tempVisData() {
+    const geoJSONPath = 'public/data/bow_river_network.json';
+    const geoJSONString = await readFile(`./files/${geoJSONPath}`, {
+      encoding: 'utf-8',
+    });
+    const geoJSONObject = JSON.parse(geoJSONString);
+    return {
+      baseLayers: ['Grayscale', 'Streets'],
+      overlayLayers: [
+        {
+          name: 'River Network',
+          geoJSONData: geoJSONObject,
+        },
+      ],
+      plugins: [
+        {
+          name: 'Sidebar',
+          tagName: 'vis-main-sidebar',
+          plugins: [
+            {
+              name: 'BarChart',
+              tagName: 'vis-main-sidebar-bar-chart',
+            },
+          ],
+        },
+      ],
+    };
+  }
 }
