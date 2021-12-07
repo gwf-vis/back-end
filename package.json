@@ -27,6 +27,7 @@
     "@nestjs/mongoose": "^9.0.1",
     "@nestjs/passport": "^8.0.1",
     "@nestjs/platform-express": "^8.0.0",
+    "@nestjs/serve-static": "^2.2.2",
     "cookie-parser": "^1.4.6",
     "directory-tree": "^3.0.1",
     "nestjs-config": "^1.4.10",
