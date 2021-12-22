@@ -1,8 +1,7 @@
-import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, Res } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import * as directoryTree from 'directory-tree';
-import { readFile } from 'fs/promises';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@repository/user/user.service';
 import { lastValueFrom, map } from 'rxjs';
@@ -29,8 +28,8 @@ export class FileController {
   }
 
   @Get()
-  async getFileContent(@Query('path') path: string) {
-    return await readFile(`./files/${path}`, { encoding: 'utf-8' });
+  async getFileContent(@Query('path') path: string, @Res() response: Response) {
+    response.sendFile(`./files/${path}`);
   }
 
   // TODO remove the below temp stuffs
