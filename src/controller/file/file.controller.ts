@@ -5,6 +5,7 @@ import * as directoryTree from 'directory-tree';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@repository/user/user.service';
 import { lastValueFrom, map } from 'rxjs';
+import { ConfigService } from 'nestjs-config';
 
 @Controller('file')
 export class FileController {
@@ -12,6 +13,7 @@ export class FileController {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private httpService: HttpService,
+    private configService: ConfigService,
   ) {}
 
   @Get('tree')
@@ -37,7 +39,10 @@ export class FileController {
 
   @Post('run')
   async runCode(@Body('code') code: string) {
-    const pythonRunnerUrl = 'http://localhost:8000/run';
+    const pythonRunnerUrl = `${
+      this.configService.get('python-runner.config')['baseUrl']
+    }/run`;
+    console.log(pythonRunnerUrl);
     const data = await lastValueFrom(
       this.httpService
         .post(pythonRunnerUrl, code, {
