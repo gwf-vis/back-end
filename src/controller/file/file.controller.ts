@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Post, Query, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Put,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
 import * as directoryTree from 'directory-tree';
@@ -6,6 +16,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@repository/user/user.service';
 import { lastValueFrom, map } from 'rxjs';
 import { ConfigService } from 'nestjs-config';
+import * as fs from 'fs';
 
 @Controller('file')
 export class FileController {
@@ -32,6 +43,47 @@ export class FileController {
   @Get()
   async getFileContent(@Query('path') path: string, @Res() response: Response) {
     response.sendFile(`./files/${path}`);
+  }
+
+  @Post()
+  async createFile(
+    @Query('path') path: string,
+    @Body() body: { content: string },
+    @Req() request: Request,
+  ) {
+    const token = request.cookies['access_token'];
+    const _id = this.jwtService.decode(token)?.['_id'];
+    const user = (await this.userService.find({ _id }))?.[0];
+
+    if (path.startsWith(user.username + '/')) {
+      fs.writeFileSync(`./files/${path}`, body.content || '');
+    }
+  }
+
+  @Put()
+  async updateFile(
+    @Query('path') path: string,
+    @Body() body: { content: string },
+    @Req() request: Request,
+  ) {
+    const token = request.cookies['access_token'];
+    const _id = this.jwtService.decode(token)?.['_id'];
+    const user = (await this.userService.find({ _id }))?.[0];
+
+    if (path.startsWith(user.username + '/')) {
+      fs.writeFileSync(`./files/${path}`, body.content || '', { flag: 'w' });
+    }
+  }
+
+  @Delete()
+  async deleteFile(@Query('path') path: string, @Req() request: Request) {
+    const token = request.cookies['access_token'];
+    const _id = this.jwtService.decode(token)?.['_id'];
+    const user = (await this.userService.find({ _id }))?.[0];
+
+    if (path.startsWith(user.username + '/')) {
+      fs.unlinkSync(`./files/${path}`);
+    }
   }
 
   // TODO remove the below temp stuffs
