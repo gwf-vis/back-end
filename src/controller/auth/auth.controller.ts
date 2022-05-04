@@ -1,8 +1,20 @@
-import { Body, Controller, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { RoleService } from '@repository/role/role.service';
 import { UserService } from '@repository/user/user.service';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom, map } from 'rxjs';
 
 @Controller('auth')
 export class AuthController {
@@ -10,7 +22,37 @@ export class AuthController {
     private readonly roleService: RoleService,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly httpService: HttpService,
   ) {}
+
+  @Get('validate')
+  async validate(@Query('service') service, @Query('ticket') ticket) {
+    const data = await lastValueFrom(
+      await this.httpService
+        .get(
+          `https://cas.usask.ca/cas/serviceValidate?service=${encodeURIComponent(
+            service,
+          )}&ticket=${ticket}`,
+        )
+        .pipe(map((res) => res.data)),
+    );
+    if (data.indexOf('INVALID_TICKET') >= 1) {
+      throw new HttpException('Invalid Ticket', HttpStatus.FORBIDDEN);
+    } else if (data.indexOf('INVALID_SERVICE') >= 1) {
+      throw new HttpException('Invalid Service', HttpStatus.FORBIDDEN);
+    } else if (data.indexOf('authenticationSuccess') >= 1) {
+      const responseSplits = data.split('\n');
+      try {
+        const nsid = responseSplits[2].split('>')[1].split('<')[0];
+        return nsid;
+      } catch (err) {
+        throw new HttpException(
+          'Error parsing paws response',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+    }
+  }
 
   @Post('sign-in')
   async signIn(
