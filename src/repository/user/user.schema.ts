@@ -6,7 +6,7 @@ export class User extends Document {
   @Prop({ type: String, required: true, unique: true })
   username: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String })
   password: string; // TODO may use authenticationHash
 
   @Prop({ type: Types.ObjectId, required: true, ref: 'role' })

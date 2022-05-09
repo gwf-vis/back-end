@@ -9,10 +9,9 @@ import { User } from './user.schema';
 
 @Injectable()
 export class UserService extends RepositoryBase<User> {
-  private readonly initialUsers = [
-    { username: '001', password: '123' },
-    { username: '002', password: '123' },
-  ];
+  private readonly initialUsers = process.env.INITIAL_USERS?.split(',').map(
+    (username) => ({ username }),
+  );
 
   constructor(
     @InjectModel(User.name) model: Model<User & Document>,
@@ -23,7 +22,7 @@ export class UserService extends RepositoryBase<User> {
   }
 
   async initialize() {
-    this.initialUsers.forEach((user) => this.createUserIfNotExist(user));
+    this.initialUsers?.forEach((user) => this.createUserIfNotExist(user));
   }
 
   async createUserIfNotExist(user: Partial<User>) {
@@ -40,6 +39,7 @@ export class UserService extends RepositoryBase<User> {
   }
 
   createUserPersonalDirectory(username: string) {
-    mkdir(`./data/${username}`);
+    mkdir(`./files/${username}`);
+    mkdir(`./files/${username}/scripts`);
   }
 }

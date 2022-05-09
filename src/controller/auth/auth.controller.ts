@@ -25,8 +25,12 @@ export class AuthController {
     private readonly httpService: HttpService,
   ) {}
 
-  @Get('validate')
-  async validate(@Query('service') service, @Query('ticket') ticket) {
+  @Post('sign-in')
+  async signIn(
+    @Query('service') service,
+    @Query('ticket') ticket,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const data = await lastValueFrom(
       await this.httpService
         .get(
@@ -37,35 +41,29 @@ export class AuthController {
         .pipe(map((res) => res.data)),
     );
     if (data.indexOf('INVALID_TICKET') >= 1) {
-      throw new HttpException('Invalid Ticket', HttpStatus.FORBIDDEN);
+      throw new HttpException('Invalid Ticket', HttpStatus.UNAUTHORIZED);
     } else if (data.indexOf('INVALID_SERVICE') >= 1) {
-      throw new HttpException('Invalid Service', HttpStatus.FORBIDDEN);
+      throw new HttpException('Invalid Service', HttpStatus.UNAUTHORIZED);
     } else if (data.indexOf('authenticationSuccess') >= 1) {
       const responseSplits = data.split('\n');
       try {
         const nsid = responseSplits[2].split('>')[1].split('<')[0];
-        return nsid;
+        const user = await this.userService.findOne({ username: nsid });
+        if (!user) {
+          throw Error('No such user.');
+        } else {
+          const payload = { _id: user._id.toString() };
+          const token = this.jwtService.sign(payload);
+          response.cookie('access_token', token, {
+            httpOnly: true,
+          });
+        }
       } catch (err) {
         throw new HttpException(
-          'Error parsing paws response',
-          HttpStatus.FORBIDDEN,
+          'Error parsing PAWS response',
+          HttpStatus.UNAUTHORIZED,
         );
       }
-    }
-  }
-
-  @Post('sign-in')
-  async signIn(
-    @Body() info: { username: string; password: string }, // TODO may use authenticationHash
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    const user = await this.userService.findOne(info);
-    if (!user) {
-      throw Error('No such user.');
-    } else {
-      const payload = { _id: user._id.toString() };
-      const token = this.jwtService.sign(payload);
-      response.cookie('access_token', token, { httpOnly: true });
     }
   }
 
