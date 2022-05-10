@@ -29,17 +29,11 @@ export class UserService extends RepositoryBase<User> {
     const userExisting = await this.findOne({ username: user.username });
     const defaultRole = await this.roleService.findOne({ name: Roles.User });
     if (!userExisting) {
-      const newUser = await this.insert({
+      await this.insert({
         username: user.username,
         password: user.password,
         roleId: defaultRole._id,
       });
-      this.createUserPersonalDirectory(newUser.username);
     }
-  }
-
-  createUserPersonalDirectory(username: string) {
-    mkdir(`./files/${username}`);
-    mkdir(`./files/${username}/scripts`);
   }
 }
