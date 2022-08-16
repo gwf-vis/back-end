@@ -34,9 +34,14 @@ export class UserController {
   }
 
   async createUserPersonalDirectory(username: string) {
-    const directory = `./files/${username}/scripts`;
-    if (!existsSync(directory)) {
-      await mkdir(directory, { recursive: true });
+    const directories = ['scripts', 'datasets', 'plugins'];
+    const directoryPaths = directories.map(
+      (dir) => `${process.env.PWD}/files/${username}/${dir}`,
+    );
+    for (const path of directoryPaths) {
+      if (!existsSync(path)) {
+        await mkdir(path, { recursive: true });
+      }
     }
   }
 }
