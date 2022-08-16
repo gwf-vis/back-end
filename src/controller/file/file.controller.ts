@@ -35,14 +35,14 @@ export class FileController {
     const _id = this.jwtService.decode(token)?.['_id'];
     const user = (await this.userService.find({ _id }))?.[0];
 
-    const fileTree = directoryTree('./files');
+    const fileTree = directoryTree(path.join(process.env.PWD, 'files'));
     fileTree.children = fileTree.children.filter(
       (child) => child.name === user?.username || child.name === 'public',
     );
     return fileTree;
   }
 
-  @Get('/:path(*)')
+  @Get('fetch/:path(*)')
   async getFileContent(
     @Param('path') filePath: string,
     @Res() response: Response,
