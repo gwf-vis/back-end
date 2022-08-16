@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Post,
   Put,
   Query,
@@ -17,6 +18,7 @@ import { UserService } from '@repository/user/user.service';
 import { lastValueFrom, map } from 'rxjs';
 import { ConfigService } from 'nestjs-config';
 import * as fs from 'fs';
+import * as path from 'path';
 
 @Controller('file')
 export class FileController {
@@ -40,9 +42,14 @@ export class FileController {
     return fileTree;
   }
 
-  @Get()
-  async getFileContent(@Query('path') path: string, @Res() response: Response) {
-    response.sendFile(`./files/${path}`);
+  @Get('/:path(*)')
+  async getFileContent(
+    @Param('path') filePath: string,
+    @Res() response: Response,
+  ) {
+    response.sendFile(filePath, {
+      root: path.join(process.env.PWD, 'files'),
+    });
   }
 
   @Post()
