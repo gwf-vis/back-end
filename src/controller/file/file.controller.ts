@@ -94,10 +94,14 @@ export class FileController {
   }
 
   // TODO remove the below temp stuffs
-  private readonly userData = {};
+  private readonly guestHistory = {};
 
   @Post('run')
-  async runCode(@Body('code') code: string) {
+  async runCode(@Body('code') code: string, @Req() request: Request) {
+    const token = request.cookies['access_token'];
+    const _id = this.jwtService.decode(token)?.['_id'];
+    const user = (await this.userService.find({ _id }))?.[0];
+
     const pythonRunnerUrl = `${
       this.configService.get('python-runner.config')['baseUrl']
     }/run`;
@@ -110,7 +114,21 @@ export class FileController {
         .pipe(map((res) => res.data)),
     );
     const id = new Date().getTime().toString();
-    this.userData[id] = data.result;
+    if (user?.username) {
+      fs.mkdirSync(
+        path.join(process.env.PWD, `files/${user.username}/history`),
+        {
+          recursive: true,
+        },
+      );
+      fs.writeFileSync(
+        path.join(process.env.PWD, `files/${user.username}/history/${id}.json`),
+        data?.result,
+        { encoding: 'utf-8' },
+      );
+    } else {
+      this.guestHistory[id] = data?.result;
+    }
     return {
       id,
       output: data.output,
@@ -119,7 +137,17 @@ export class FileController {
   }
 
   @Get('vis')
-  async tempVisData(@Query('id') id: string) {
-    return this.userData[id];
+  async obtainVisConfig(
+    @Query('user') username: string,
+    @Query('id') id: string,
+  ) {
+    if (username) {
+      return fs.readFileSync(
+        path.join(process.env.PWD, `files/${username}/history/${id}.json`),
+        { encoding: 'utf-8' },
+      );
+    } else {
+      return this.guestHistory[id];
+    }
   }
 }
