@@ -140,11 +140,12 @@ export class FileController {
   ) {
     if (username) {
       return fs.readFileSync(
-        path.join(process.env.PWD, `files/${username}/history/${id}.json`),
+        path.join(
+          process.env.PWD,
+          `files/${username || 'guest'}/history/${id}.json`,
+        ),
         { encoding: 'utf-8' },
       );
-    } else {
-      return this.guestHistory[id];
     }
   }
 }
