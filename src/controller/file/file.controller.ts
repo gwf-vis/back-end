@@ -138,14 +138,12 @@ export class FileController {
     @Query('user') username: string,
     @Query('id') id: string,
   ) {
-    if (username) {
-      return fs.readFileSync(
-        path.join(
-          process.env.PWD,
-          `files/${username || 'guest'}/history/${id}.json`,
-        ),
-        { encoding: 'utf-8' },
-      );
-    }
+    return fs.readFileSync(
+      path.join(
+        process.env.PWD,
+        `files/${username || 'guest'}/history/${id}.json`,
+      ),
+      { encoding: 'utf-8' },
+    );
   }
 }
