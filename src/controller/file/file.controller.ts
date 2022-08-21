@@ -123,7 +123,7 @@ export class FileController {
         process.env.PWD,
         `files/${user?.username || 'guest'}/history/${id}.json`,
       ),
-      data?.result,
+      JSON.stringify(data?.result),
       { encoding: 'utf-8' },
     );
     return {
