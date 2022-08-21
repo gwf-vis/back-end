@@ -93,9 +93,6 @@ export class FileController {
     }
   }
 
-  // TODO remove the below temp stuffs
-  private readonly guestHistory = {};
-
   @Post('run')
   async runCode(@Body('code') code: string, @Req() request: Request) {
     const token = request.cookies['access_token'];
@@ -114,21 +111,21 @@ export class FileController {
         .pipe(map((res) => res.data)),
     );
     const id = new Date().getTime().toString();
-    if (user?.username) {
-      fs.mkdirSync(
-        path.join(process.env.PWD, `files/${user.username}/history`),
-        {
-          recursive: true,
-        },
-      );
-      fs.writeFileSync(
-        path.join(process.env.PWD, `files/${user.username}/history/${id}.json`),
-        data?.result,
-        { encoding: 'utf-8' },
-      );
-    } else {
-      this.guestHistory[id] = data?.result;
-    }
+    console.log(`${user?.username}`);
+    fs.mkdirSync(
+      path.join(process.env.PWD, `files/${user?.username || 'guest'}/history`),
+      {
+        recursive: true,
+      },
+    );
+    fs.writeFileSync(
+      path.join(
+        process.env.PWD,
+        `files/${user?.username || 'guest'}/history/${id}.json`,
+      ),
+      data?.result,
+      { encoding: 'utf-8' },
+    );
     return {
       id,
       output: data.output,
