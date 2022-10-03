@@ -19,6 +19,7 @@ import { lastValueFrom, map } from 'rxjs';
 import { ConfigService } from 'nestjs-config';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as sqlite3 from 'sqlite3';
 
 @Controller('file')
 export class FileController {
@@ -145,5 +146,41 @@ export class FileController {
       ),
       { encoding: 'utf-8' },
     );
+  }
+
+  @Post('query')
+  async queryDB(
+    @Query('path') dbPath: string,
+    // @Req() request: Request,
+    @Body('sql') sql: string,
+  ) {
+    // const token = request.cookies['access_token'];
+    // const _id = this.jwtService.decode(token)?.['_id'];
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const user = (await this.userService.find({ _id }))?.[0];
+
+    const db = new sqlite3.Database(
+      path.join(process.env.PWD, `files/${dbPath.replace('@/', '')}`),
+      sqlite3.OPEN_READONLY,
+    );
+
+    const queryAsync = (sql: string, params?: any) => {
+      return new Promise((resolve, reject) => {
+        db.all(sql, params, function (error, rows) {
+          if (error) reject(error);
+          else resolve(rows);
+        });
+      });
+    };
+
+    const result = (await queryAsync(sql)) as any[];
+    db.close();
+
+    const columns = Object.keys(result?.[0] || {});
+    const values = result?.map((row) => columns?.map((column) => row[column]));
+    return {
+      columns,
+      values,
+    };
   }
 }
