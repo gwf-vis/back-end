@@ -3,12 +3,16 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   Post,
   Put,
   Query,
   Req,
   Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
@@ -20,6 +24,7 @@ import { ConfigService } from 'nestjs-config';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as sqlite3 from 'sqlite3';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('file')
 export class FileController {
@@ -92,6 +97,31 @@ export class FileController {
     if (path.startsWith(user.username + '/')) {
       fs.unlinkSync(`./files/${path}`);
     }
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @Query('path') path: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() request: Request,
+  ) {
+    const token = request.cookies['access_token'];
+    const _id = this.jwtService.decode(token)?.['_id'];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _user = (await this.userService.find({ _id }))?.[0];
+
+    const FILE_SIZE_LIMIT = 100 * 1024;
+    if (file.size > FILE_SIZE_LIMIT) {
+      throw new HttpException(
+        'The file size is over the limit',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    // TODO check personal directory size
+    fs.writeFileSync(`./files/${path}/${file.originalname}`, file.buffer, {
+      flag: 'w',
+    });
   }
 
   @Post('run')
