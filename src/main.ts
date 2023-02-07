@@ -1,10 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
+  app.use(json({ limit: '200mb' }));
+  app.use(urlencoded({ limit: '200mb' }));
   app.enableCors({
     origin: /^(http|https):\/\/localhost*/,
     credentials: true,
