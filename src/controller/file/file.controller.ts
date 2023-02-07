@@ -100,7 +100,9 @@ export class FileController {
   }
 
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 200 * 1024 * 1024 } }),
+  )
   async uploadFile(
     @Query('path') path: string,
     @UploadedFile() file: Express.Multer.File,
@@ -111,13 +113,13 @@ export class FileController {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _user = (await this.userService.find({ _id }))?.[0];
 
-    const FILE_SIZE_LIMIT = 100 * 1024;
-    if (file.size > FILE_SIZE_LIMIT) {
-      throw new HttpException(
-        'The file size is over the limit',
-        HttpStatus.FORBIDDEN,
-      );
-    }
+    // const FILE_SIZE_LIMIT = 100 * 1024;
+    // if (file.size > FILE_SIZE_LIMIT) {
+    //   throw new HttpException(
+    //     'The file size is over the limit',
+    //     HttpStatus.FORBIDDEN,
+    //   );
+    // }
     // TODO check personal directory size
     fs.writeFileSync(`./files/${path}/${file.originalname}`, file.buffer, {
       flag: 'w',
