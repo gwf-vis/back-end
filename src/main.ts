@@ -9,7 +9,8 @@ async function bootstrap() {
   app.use(json({ limit: '200mb' }));
   app.use(urlencoded({ limit: '200mb', extended: true }));
   app.enableCors({
-    origin: /^(http|https):\/\/localhost*/,
+    // origin: /^(http|https):\/\/localhost*/,
+    origin: /.*/,
     credentials: true,
   });
   await app.listen(5000, '0.0.0.0');
